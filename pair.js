@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
-const { requestPairingCodeFromSocket, buildSessionCodeFromCredsFile } = require('./pair-utils');
+const { requestPairingCodeFromSocket, buildSessionCodeFromCredsFile, resolveSessionRecipientJid } = require('./pair-utils');
 // dynamically load baileys when needed (ESM-only module)
 let makeWASocket, useMultiFileAuthState, delay, Browsers, makeCacheableSignalKeyStore, jidNormalizedUser;
 
@@ -88,7 +88,11 @@ router.get('/', async (req, res) => {
                     }
 
                     const blazeID = generateBLAZE_ID();
-                    const userJid = jidNormalizedUser(sock.user.id);
+                    const userJid = resolveSessionRecipientJid(sock, jidNormalizedUser);
+
+                    if (!userJid) {
+                        throw new Error('Unable to resolve your WhatsApp recipient JID after login.');
+                    }
 
                     try {
                         let session_code = buildSessionCodeFromCredsFile(rf) || `${blazeID}`;

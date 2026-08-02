@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { normalizePhoneNumber, requestPairingCodeFromSocket, buildSessionCodeFromCredsFile } = require('../pair-utils');
+const { normalizePhoneNumber, requestPairingCodeFromSocket, buildSessionCodeFromCredsFile, resolveSessionRecipientJid } = require('../pair-utils');
 
 test('normalizes phone numbers for pairing code requests', () => {
   assert.equal(normalizePhoneNumber('+256700123456'), '256700123456');
@@ -36,4 +36,18 @@ test('builds a session code from the real credentials file contents', () => {
   const code = buildSessionCodeFromCredsFile(credsPath);
 
   assert.equal(code, `BLAZE~${Buffer.from(sessionPayload).toString('base64')}`);
+});
+
+test('resolves the logged-in user JID from the auth state when user.id is missing', () => {
+  const socket = {
+    authState: {
+      creds: {
+        me: { id: '256700123456@s.whatsapp.net' },
+      },
+    },
+  };
+
+  const jid = resolveSessionRecipientJid(socket, (value) => value);
+
+  assert.equal(jid, '256700123456@s.whatsapp.net');
 });

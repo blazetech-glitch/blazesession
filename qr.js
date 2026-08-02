@@ -4,6 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
+const { resolveSessionRecipientJid } = require('./pair-utils');
 // load baileys dynamically since it's an ESM module
 let makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser;
 
@@ -66,7 +67,11 @@ router.get('/', async (req, res) => {
                         }
 
                         const blazeID = generateBLAZE_ID();
-                        const userJid = jidNormalizedUser(sock.user.id);
+                        const userJid = resolveSessionRecipientJid(sock, jidNormalizedUser);
+
+                        if (!userJid) {
+                            throw new Error('Unable to resolve your WhatsApp recipient JID after login.');
+                        }
 
                         try {
                             const mega_url = await upload(fs.createReadStream(rf), `${userJid}.json`);
@@ -161,8 +166,7 @@ router.get('/', async (req, res) => {
                         await sock.ws.close();
                         await removeFile('./temp/' + id);
                         console.log(`👤 ${sock.user.id} 🔥 BLAZE-MD Session Connected ✅`);
-                        await delay(10);
-                        process.exit();
+                        return;
                     }
                 } catch (err) {
                     console.log("⚠️ Error in connection.update:", err);
@@ -187,8 +191,7 @@ router.get('/', async (req, res) => {
 });
 
 setInterval(() => {
-    console.log("🔄 BLAZE-MD Restarting process...");
-    process.exit();
+    console.log("🔄 BLAZE-MD service is still running.");
 }, 1800000); // 30 minutes
 
 module.exports = router;

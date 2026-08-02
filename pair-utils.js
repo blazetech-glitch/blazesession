@@ -24,6 +24,28 @@ function buildSessionCodeFromCredsFile(credsPath) {
   return `BLAZE~${Buffer.from(raw).toString('base64')}`;
 }
 
+function resolveSessionRecipientJid(sock, jidNormalizer) {
+  if (!sock) return '';
+
+  const candidates = [
+    sock.user?.id,
+    sock.authState?.creds?.me?.id,
+    sock.authState?.creds?.me?.jid,
+    sock.authState?.creds?.me?.lid,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string' || !candidate.trim()) continue;
+
+    const normalized = typeof jidNormalizer === 'function' ? jidNormalizer(candidate) : candidate;
+    if (typeof normalized === 'string' && normalized.trim()) {
+      return normalized;
+    }
+  }
+
+  return '';
+}
+
 async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
   const normalizedNumber = normalizePhoneNumber(rawNumber || '');
   if (!normalizedNumber) {
@@ -40,5 +62,6 @@ async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
 module.exports = {
   normalizePhoneNumber,
   buildSessionCodeFromCredsFile,
+  resolveSessionRecipientJid,
   requestPairingCodeFromSocket,
 };
