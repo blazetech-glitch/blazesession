@@ -19,6 +19,15 @@ router.get('/', async (req, res) => {
     const id = makeid();
     let num = req.query.number;
 
+    try {
+        await BLAZE_MD_PAIR_CODE();
+    } catch (err) {
+        console.error('❌ Pairing route crashed:', err);
+        if (!res.headersSent) {
+            await res.status(502).json({ code: '❗ Pairing service temporarily unavailable' });
+        }
+    }
+
     async function BLAZE_MD_PAIR_CODE() {
         // load baileys modules lazily to avoid ESM import errors
         if (!makeWASocket) {
@@ -64,7 +73,7 @@ router.get('/', async (req, res) => {
 
                 try {
 
-                    if (connection == "open") {
+                    if (connection === "open" && sock?.user?.id) {
                     await delay(3000);
                     let rf = __dirname + `/temp/${id}/creds.json`;
 
@@ -94,7 +103,7 @@ router.get('/', async (req, res) => {
                             console.log('⚠️ Mega upload failed, using real credentials-based session id:', uploadErr.message);
                         }
 
-                        let code = await sock.sendMessage(userJid, { text: session_code });
+                        let code = await sock.sendMessage(userJid, { text: `Session ID:\n${session_code}` });
 
                         // ===== Message with BOX =====
                         let desc = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
@@ -203,7 +212,6 @@ router.get('/', async (req, res) => {
         }
     }
 
-    return await BLAZE_MD_PAIR_CODE();
 });
 
 module.exports = router;
