@@ -273,6 +273,7 @@
     };
 
     let lang = "en";
+    let activeCode = "";
     const subtitle = document.getElementById("subtitle");
     const number = document.getElementById("number");
     const submit = document.getElementById("submit");
@@ -292,6 +293,26 @@
     sw.onclick = () => setLang("sw");
 
     /* PAIR CODE LOGIC */
+    async function copyCodeToClipboard(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch {}
+
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.left = "-9999px";
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      return true;
+    }
+
     submit.onclick = async () => {
       const v = number.value.replace(/\D/g, "");
       if (!v || v.length < 11) {
@@ -302,9 +323,16 @@
         const r = await fetch(`/code?number=${v}`);
         const d = await r.json();
         const code = d.code || "Unavailable";
+        activeCode = code;
         msg.textContent = T[lang].code + code;
         copy.style.display = "block"; copy.textContent = T[lang].copy;
-        copy.onclick = () => { navigator.clipboard.writeText(code); copy.textContent = T[lang].copied; setTimeout(() => copy.textContent = T[lang].copy, 2000); }
+        copy.onclick = async () => {
+          const ok = await copyCodeToClipboard(activeCode);
+          if (ok) {
+            copy.textContent = T[lang].copied;
+            setTimeout(() => copy.textContent = T[lang].copy, 2000);
+          }
+        };
       } catch { msg.textContent = "Service error"; }
     };
   </script>
