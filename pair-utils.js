@@ -1,16 +1,15 @@
 function normalizePhoneNumber(input) {
   if (typeof input !== 'string') return '';
 
-  const normalized = input.trim().replace(/[^0-9+]/g, '');
+  const normalized = input.trim().replace(/[^0-9]/g, '');
 
   if (!normalized) return '';
 
-  if (normalized.startsWith('+')) return normalized;
-  if (normalized.startsWith('00')) return `+${normalized.slice(2)}`;
-  if (normalized.length > 10 && !normalized.startsWith('0')) return `+${normalized}`;
-  if (normalized.startsWith('0')) return `+${normalized.slice(1)}`;
+  if (normalized.startsWith('0')) {
+    return normalized.slice(1);
+  }
 
-  return `+${normalized}`;
+  return normalized;
 }
 
 async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
