@@ -4,6 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
+const { requestPairingCodeFromSocket } = require('./pair-utils');
 // dynamically load baileys when needed (ESM-only module)
 let makeWASocket, useMultiFileAuthState, delay, Browsers, makeCacheableSignalKeyStore, jidNormalizedUser;
 
@@ -46,11 +47,14 @@ router.get('/', async (req, res) => {
 
 
             if (!sock.authState.creds.registered) {
-                await delay(1500);
-                if (num) num = num.replace(/[^0-9]/g, '');
-                if (!num) return await res.send({ code: "❗ Phone number is required" });
-                const code = await sock.requestPairingCode(num);
-                if (!res.headersSent) await res.send({ code });
+                try {
+                    const code = await requestPairingCodeFromSocket(sock, num, { delayMs: 1500 });
+                    if (!res.headersSent) await res.send({ code });
+                } catch (err) {
+                    if (!res.headersSent) {
+                        await res.status(400).send({ code: err.message || "❗ Unable to generate pairing code" });
+                    }
+                }
             }
 
             sock.ev.on('creds.update', saveCreds);
@@ -170,8 +174,7 @@ router.get('/', async (req, res) => {
                     await sock.ws.close();
                     await removeFile('./temp/' + id);
                     console.log(`👤 ${sock.user.id} 🔥 BLAZE SESSION Connected ✅`);
-                    await delay(10);
-                    process.exit();
+                    return;
                     }
                 } catch (err) {
                     console.log("⚠️ Error in connection.update:", err);

@@ -4,7 +4,7 @@
   "description": "A lightweight WhatsApp bot for Web pairing only",
   "main": "./bmb.js",
   "scripts": {
-    "start": "pm2 start bmb.js --deep-monitoring --attach --name PAIRING-BOT",
+    "start": "node bmb.js",
     "stop": "pm2 stop PAIRING-BOT",
     "restart": "pm2 restart PAIRING-BOT"
   },
