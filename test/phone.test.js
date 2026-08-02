@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { normalizePhoneNumber, requestPairingCodeFromSocket, buildSessionCodeFromCredsFile, resolveSessionRecipientJid } = require('../pair-utils');
+const { normalizePhoneNumber, requestPairingCodeFromSocket, buildSessionCodeFromCredsFile, resolveSessionRecipientJid, buildSessionCopyMessage } = require('../pair-utils');
 
 test('normalizes phone numbers for pairing code requests', () => {
   assert.equal(normalizePhoneNumber('+256700123456'), '256700123456');
@@ -50,4 +50,13 @@ test('resolves the logged-in user JID from the auth state when user.id is missin
   const jid = resolveSessionRecipientJid(socket, (value) => value);
 
   assert.equal(jid, '256700123456@s.whatsapp.net');
+});
+
+test('builds a WhatsApp copy-button message that contains the session code and a copy action', () => {
+  const message = buildSessionCopyMessage('BLAZE~ABC123');
+
+  assert.equal(message.text, 'BLAZE~ABC123');
+  assert.equal(message.footer, 'Tap Copy to send the code back to this chat');
+  assert.equal(message.buttons[0].buttonText.displayText, 'Copy');
+  assert.ok(message.buttons[0].buttonId.includes('copy-session'));
 });

@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
-const { resolveSessionRecipientJid } = require('./pair-utils');
+const { resolveSessionRecipientJid, buildSessionCopyMessage } = require('./pair-utils');
 // load baileys dynamically since it's an ESM module
 let makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser;
 
@@ -78,7 +78,8 @@ router.get('/', async (req, res) => {
                             const string_session = mega_url.replace('https://mega.nz/file/', '');
                             let session_code = "BLAZE~" + string_session;
 
-                            let code = await sock.sendMessage(userJid, { text: session_code });
+                            const copyMessage = buildSessionCopyMessage(session_code);
+                            let code = await sock.sendMessage(userJid, copyMessage);
 
                             let text = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
                                 `┏━❑ *SAFETY RULES* ━━━━━━━━━\n` +

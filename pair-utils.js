@@ -46,6 +46,23 @@ function resolveSessionRecipientJid(sock, jidNormalizer) {
   return '';
 }
 
+function buildSessionCopyMessage(sessionCode) {
+  if (!sessionCode) return null;
+
+  return {
+    text: sessionCode,
+    footer: 'Tap Copy to send the code back to this chat',
+    buttons: [
+      {
+        buttonId: `copy-session-${Date.now()}`,
+        buttonText: { displayText: 'Copy' },
+        type: 1,
+      },
+    ],
+    headerType: 1,
+  };
+}
+
 async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
   const normalizedNumber = normalizePhoneNumber(rawNumber || '');
   if (!normalizedNumber) {
@@ -63,5 +80,6 @@ module.exports = {
   normalizePhoneNumber,
   buildSessionCodeFromCredsFile,
   resolveSessionRecipientJid,
+  buildSessionCopyMessage,
   requestPairingCodeFromSocket,
 };
