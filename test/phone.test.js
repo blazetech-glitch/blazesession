@@ -1,6 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizePhoneNumber, requestPairingCodeFromSocket } = require('../pair-utils');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { normalizePhoneNumber, requestPairingCodeFromSocket, buildSessionCodeFromCredsFile } = require('../pair-utils');
 
 test('normalizes phone numbers for pairing code requests', () => {
   assert.equal(normalizePhoneNumber('+256700123456'), '256700123456');
@@ -22,4 +25,15 @@ test('requests a pairing code through the socket with a normalized number', asyn
 
   assert.equal(code, 'PAIR-CODE-123');
   assert.deepEqual(requests, ['256700123456']);
+});
+
+test('builds a session code from the real credentials file contents', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blaze-session-'));
+  const credsPath = path.join(tempDir, 'creds.json');
+  const sessionPayload = JSON.stringify({ key: 'value' });
+  fs.writeFileSync(credsPath, sessionPayload);
+
+  const code = buildSessionCodeFromCredsFile(credsPath);
+
+  assert.equal(code, `BLAZE~${Buffer.from(sessionPayload).toString('base64')}`);
 });

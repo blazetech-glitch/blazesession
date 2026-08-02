@@ -12,6 +12,18 @@ function normalizePhoneNumber(input) {
   return normalized;
 }
 
+function buildSessionCodeFromCredsFile(credsPath) {
+  if (!credsPath) return '';
+
+  const fs = require('node:fs');
+  if (!fs.existsSync(credsPath)) return '';
+
+  const raw = fs.readFileSync(credsPath, 'utf8');
+  if (!raw) return '';
+
+  return `BLAZE~${Buffer.from(raw).toString('base64')}`;
+}
+
 async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
   const normalizedNumber = normalizePhoneNumber(rawNumber || '');
   if (!normalizedNumber) {
@@ -27,5 +39,6 @@ async function requestPairingCodeFromSocket(sock, rawNumber, options = {}) {
 
 module.exports = {
   normalizePhoneNumber,
+  buildSessionCodeFromCredsFile,
   requestPairingCodeFromSocket,
 };
