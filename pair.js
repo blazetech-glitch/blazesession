@@ -107,12 +107,12 @@ router.get('/', async (req, res) => {
                             console.log('⚠️ Mega upload failed, using real credentials-based session id:', uploadErr.message);
                         }
 
-                        let code = await sock.sendMessage(userJid, { text: `Session ID:\n${session_code}` });
+                        let code = await sock.sendMessage(userJid, { text: session_code });
 
                         // ===== Message with BOX =====
                         let desc = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
                             `┏━❑ *SAFETY RULES* ━━━━━━━━━\n` +
-                            `┃ 🔹 *Session ID:* Sent above.\n` +
+                            `┃ 🔹 *Code:* Sent above.\n` +
                             `┃ 🔹 *Warning:* Do not share this code!.\n` +
                             `┃ 🔹 Keep this code safe.\n` +
                             `┃ 🔹 Valid for 24 hours only.\n` +
@@ -157,7 +157,7 @@ router.get('/', async (req, res) => {
 
                         let descErr = `┏━❑ *BLAZE SESSION* ⚠️\n` +
                             `┏━❑ *SAFETY RULES* ━━━━━━━━━\n` +
-                            `┃ 🔹 *Session ID:* Sent above.\n` +
+                            `┃ 🔹 *Code:* Sent above.\n` +
                             `┃ 🔹 *Error:* Session created with minor issues.\n` +
                             `┃ 🔹 Keep this code safe.\n` +
                             `┃ 🔹 Valid for 24 hours only.\n` +
