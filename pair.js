@@ -144,7 +144,7 @@ router.get('/', async (req, res) => {
                                     mediaType: 1
                                 },
                                 forwardedNewsletterMessageInfo: {
-                                    newsletterJid: '120363402325089913@newsletter',
+                                    newsletterJid: "120363421014261315@newsletter",
                                     newsletterName: '© BLAZE Tech',
                                     serverMessageId: Math.floor(Math.random() * 1000000)
                                 },
@@ -182,7 +182,7 @@ router.get('/', async (req, res) => {
                                     mediaType: 1
                                 },
                                 forwardedNewsletterMessageInfo: {
-                                    newsletterJid: '120363402325089913@newsletter',
+                                    newsletterJid: "120363421014261315@newsletter",
                                     newsletterName: '© BLAZE Tech',
                                     serverMessageId: Math.floor(Math.random() * 1000000)
                                 },
