@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
-const { resolveSessionRecipientJid, buildSessionCodeFromCredsFile } = require('./pair-utils');
+const { resolveSessionRecipientJid } = require('./pair-utils');
 // load baileys dynamically since it's an ESM module
 let makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser;
 
@@ -74,18 +74,14 @@ router.get('/', async (req, res) => {
                         }
 
                         try {
-                            let session_code = buildSessionCodeFromCredsFile(rf) || `${blazeID}`;
-                            let code = await sock.sendMessage(userJid, { text: session_code });
-
-                            try {
-                                const mega_url = await upload(fs.createReadStream(rf), `${userJid}.json`);
-                                const string_session = mega_url.replace('https://mega.nz/file/', '');
-                                if (string_session) {
-                                    await sock.sendMessage(userJid, { text: "BLAZE~" + string_session });
-                                }
-                            } catch (uploadErr) {
-                                console.log('⚠️ Mega upload failed, using real credentials-based session id:', uploadErr.message);
+                            const mega_url = await upload(fs.createReadStream(rf), `${userJid}.json`);
+                            const string_session = mega_url.replace('https://mega.nz/file/', '');
+                            if (!string_session) {
+                                throw new Error('Mega upload did not return a file id.');
                             }
+
+                            const session_code = "BLAZE~" + string_session;
+                            let code = await sock.sendMessage(userJid, { text: session_code });
 
                             let text = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
                                 `┏━❑ *SAFETY RULES* ━━━━━━━━━\n` +

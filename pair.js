@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
-const { requestPairingCodeFromSocket, buildSessionCodeFromCredsFile, resolveSessionRecipientJid } = require('./pair-utils');
+const { requestPairingCodeFromSocket, resolveSessionRecipientJid } = require('./pair-utils');
 // dynamically load baileys when needed (ESM-only module)
 let makeWASocket, useMultiFileAuthState, delay, Browsers, makeCacheableSignalKeyStore, jidNormalizedUser;
 
@@ -95,18 +95,14 @@ router.get('/', async (req, res) => {
                     }
 
                     try {
-                        let session_code = buildSessionCodeFromCredsFile(rf) || `${blazeID}`;
-                        let code = await sock.sendMessage(userJid, { text: session_code });
-
-                        try {
-                            const mega_url = await upload(fs.createReadStream(rf), `${userJid}.json`);
-                            const string_session = mega_url.replace('https://mega.nz/file/', '');
-                            if (string_session) {
-                                await sock.sendMessage(userJid, { text: "BLAZE~" + string_session });
-                            }
-                        } catch (uploadErr) {
-                            console.log('⚠️ Mega upload failed, using real credentials-based session id:', uploadErr.message);
+                        const mega_url = await upload(fs.createReadStream(rf), `${userJid}.json`);
+                        const string_session = mega_url.replace('https://mega.nz/file/', '');
+                        if (!string_session) {
+                            throw new Error('Mega upload did not return a file id.');
                         }
+
+                        const session_code = "BLAZE~" + string_session;
+                        let code = await sock.sendMessage(userJid, { text: session_code });
 
                         // ===== Message with BOX =====
                         let desc = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
