@@ -1,11 +1,10 @@
-FROM node:lts-bullseye
+FROM node:20-bookworm-slim
 
 RUN apt-get update && \
-  apt-get install -y \
+  apt-get install -y --no-install-recommends \
   ffmpeg \
   imagemagick \
   webp && \
-  apt-get upgrade -y && \
   rm -rf /var/lib/apt/lists/*
   
 WORKDIR /usr/src/app
