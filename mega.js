@@ -2,7 +2,7 @@ const mega = require("megajs");
 
 const auth = {
     email: 'atarimo117@gmail.com',   //use your real vaild mega account email
-    password: 'mwanafunzii1',  ////use your real vaild mega account password
+    password: 'mwanafunzii11',  ////use your real vaild mega account password
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
 };
 
@@ -21,7 +21,8 @@ const upload = (data, name) => {
                 throw new Error("Missing required authentication fields");
             }
 
-            const storage = new mega.Storage(auth, () => {
+            const storage = new mega.Storage(auth);
+            storage.ready.then(() => {
                 const uploadStream = storage.upload({ name, allowUploadBuffering: true });
 
                 uploadStream.once('error', fail);
@@ -40,7 +41,7 @@ const upload = (data, name) => {
 
                 data.once('error', fail);
                 data.pipe(uploadStream);
-            });
+            }).catch(fail);
 
             storage.once('error', fail);
         } catch (err) {
