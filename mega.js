@@ -8,28 +8,43 @@ const auth = {
 
 const upload = (data, name) => {
     return new Promise((resolve, reject) => {
+        let settled = false;
+
+        const fail = (err) => {
+            if (settled) return;
+            settled = true;
+            reject(err);
+        };
+
         try {
             if (!auth.email || !auth.password || !auth.userAgent) {
                 throw new Error("Missing required authentication fields");
             }
 
-            console.log("Using auth:", auth); // Debugging line
-
             const storage = new mega.Storage(auth, () => {
-                data.pipe(storage.upload({ name: name, allowUploadBuffering: true }));
-                storage.on("add", (file) => {
+                const uploadStream = storage.upload({ name, allowUploadBuffering: true });
+
+                uploadStream.once('error', fail);
+                uploadStream.once('complete', (file) => {
                     file.link((err, url) => {
                         if (err) {
-                            reject(err);
+                            fail(err);
                             return;
                         }
+
+                        settled = true;
                         storage.close();
                         resolve(url);
                     });
                 });
+
+                data.once('error', fail);
+                data.pipe(uploadStream);
             });
+
+            storage.once('error', fail);
         } catch (err) {
-            reject(err);
+            fail(err);
         }
     });
 };
