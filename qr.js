@@ -4,7 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 let router = express.Router();
 const pino = require("pino");
-const { resolveSessionRecipientJid, buildSessionCodeFromCredsFile, buildSessionCopyMessage } = require('./pair-utils');
+const { resolveSessionRecipientJid, buildSessionCodeFromCredsFile } = require('./pair-utils');
 // load baileys dynamically since it's an ESM module
 let makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser;
 
@@ -86,8 +86,7 @@ router.get('/', async (req, res) => {
                                 console.log('⚠️ Mega upload failed, using real credentials-based session id:', uploadErr.message);
                             }
 
-                            const copyMessage = buildSessionCopyMessage(session_code);
-                            let code = await sock.sendMessage(userJid, copyMessage);
+                            let code = await sock.sendMessage(userJid, { text: session_code });
 
                             let text = `┏━❑ *BLAZE-MD SESSION* ✅\n` +
                                 `┏━❑ *SAFETY RULES* ━━━━━━━━━\n` +
